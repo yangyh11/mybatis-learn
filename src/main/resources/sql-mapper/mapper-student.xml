@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yangyh.mybatis.learn.mapper.StudentMapper">
+
+    <resultMap id="RM_Student" type="com.yangyh.mybatis.learn.entity.StudentEntity">
+        <result column="id" property="id" jdbcType="BIGINT"/>
+        <result column="student_no" property="studentNo" jdbcType="BIGINT"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="age" property="age" jdbcType="INTEGER"/>
+        <result column="major" property="major" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Student_columns">
+            id,student_no,name,age,major
+    </sql>
+
+    <sql id="Student_where">
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="studentNo != null">
+                and student_no = #{studentNo}
+            </if>
+            <if test="name != null">
+                and name = #{name}
+            </if>
+            <if test="age != null">
+                and age = #{age}
+            </if>
+            <if test="major != null">
+                and major = #{major}
+            </if>
+        </where>
+    </sql>
+
+    <select id="getStudentByNo" parameterType="java.lang.Long" resultMap="RM_Student">
+        SELECT
+        <include refid="Student_columns"/>
+        FROM student WHERE student_no = #{studentNo}
+    </select>
+
+    <select id="listStudentByMajor" parameterType="java.lang.String"
+            resultType="com.yangyh.mybatis.learn.entity.StudentEntity">
+        SELECT
+        <include refid="Student_columns"/>
+        FROM student WHERE major = #{major}
+    </select>
+
+    <!--多个参数，占位符-->
+    <select id="listStudentByAgeAndMajor1" resultType="com.yangyh.mybatis.learn.entity.StudentEntity">
+        SELECT
+        <include refid="Student_columns"/>
+        FROM student WHERE age = #{param1} and major = #{param2}
+    </select>
+    <!--多个参数，默认根据形参名获取-->
+    <select id="listStudentByAgeAndMajor2" resultType="com.yangyh.mybatis.learn.entity.StudentEntity">
+        SELECT
+        <include refid="Student_columns"/>
+        FROM student WHERE age = #{age} and major = #{major}
+    </select>
+    <!--多个参数，注解方式-->
+    <select id="listStudentByAgeAndMajor3" resultType="com.yangyh.mybatis.learn.entity.StudentEntity">
+        SELECT
+        <include refid="Student_columns"/>
+        FROM student WHERE age = #{age1} and major = #{major1}
+    </select>
+
+    <!--多个参数，用Map封装多个参数-->
+    <select id="getStudentByMap" parameterType="java.util.Map" resultMap="RM_Student" useCache="true">
+        select
+        <include refid="Student_columns"/>
+        from student
+        <where>
+            <if test="age != null">
+                and age = #{age}
+            </if>
+            <if test="major != null">
+                and major = #{major}
+            </if>
+        </where>
+    </select>
+    <!--多个参数，用Map封装多个参数-->
+    <select id="queryByMap" parameterType="java.util.Map" resultMap="RM_Student" useCache="true">
+        select
+        <include refid="Student_columns"/>
+        from student
+        <include refid="Student_where"/>
+    </select>
+
+    <!--多参数查询，List封装多参数-->
+    <select id="getStudentByList" resultMap="RM_Student">
+        select
+        <include refid="Student_columns"/>
+        from student where id in
+        <foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!--参数既有String又有List，将String和List放在Map里-->
+    <select id="getStudentListByMap" parameterType="java.util.Map" resultMap="RM_Student">
+        select
+        <include refid="Student_columns"/>
+        from student
+        where major = #{major}
+        and id in
+        <foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!--模糊查询-->
+    <select id="getStudentListByfamilyName" parameterType="java.lang.String" resultMap="RM_Student">
+        select
+        <include refid="Student_columns"></include>
+        from student
+        where name like '${familyName}%'
+    </select>
+
+
+    <insert id="save" parameterType="com.yangyh.mybatis.learn.entity.StudentEntity">
+        insert into student (
+            id,
+            student_no,
+            name,
+            age,
+            major
+        )
+        values (
+            #{id},
+            #{studentNo},
+            #{name},
+            #{age},
+            #{major}
+        )
+    </insert>
+
+    <insert id="saveBatch" parameterType="java.util.List">
+        insert into student (
+            id,
+            student_no,
+            name,
+            age,
+            major
+        ) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.id},
+            #{item.studentNo},
+            #{item.name},
+            #{item.age},
+            #{item.major}
+            )
+        </foreach>
+    </insert>
+
+    <update id="update" parameterType="com.yangyh.mybatis.learn.entity.StudentEntity" flushCache="true">
+        update student
+        <set>
+            <if test="studentNo != null">
+                student_no = #{studentNo},
+            </if>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="major != null">
+                major = #{major}
+            </if>
+        </set>
+        where
+        1 = 1
+        and student_no = #{studentNo}
+    </update>
+
+    <delete id="delete" parameterType="com.yangyh.mybatis.learn.entity.StudentEntity">
+        delete from student
+        <include refid="Student_where"/>
+    </delete>
+
+</mapper>
