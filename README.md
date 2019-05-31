@@ -1,4 +1,6 @@
-# 一、单个参数
+# 一、查询
+
+### 1、单个参数
 
 List<XXBean> getXXBeanList(String xxId);
 
@@ -8,7 +10,7 @@ List<XXBean> getXXBeanList(String xxId);
 
 ``</select>``
 
-# 二、多参数
+### 2、多参数
 
 List<XXBean> getXXBeanList(String xxId, String xxCode);
 
@@ -32,7 +34,7 @@ List<XXBean> getXXBeanList(String xxId, String xxCode);
 
   ​		``select t.* from tableName t where t.id=#{param1} and t.code=#{param2}``
 
-# 三、多参数传递之注解方式
+### 3、多参数传递之注解方式
 
 List<XXBean> getXXBeanList(@Param("xxId")String xxId, @Param("xxCode")String xxCode);
 
@@ -44,7 +46,7 @@ List<XXBean> getXXBeanList(@Param("xxId")String xxId, @Param("xxCode")String xxC
 
 使用注解后，根据注解配置的变量名获取。
 
-# 四、Map封装多参数
+### 4、Map封装多参数
 
 List<XXBean> getXXBeanList(HashMap map);
 
@@ -56,7 +58,7 @@ List<XXBean> getXXBeanList(HashMap map);
 
 其中map是mybatis自己配置好的直接使用就行。map中key的名字是那个在#{}使用的那个
 
-# 五、List封装多参数
+### 5、List封装多参数
 
 List<XXBean> getXXBeanList(List<String> list);
 
@@ -74,19 +76,7 @@ List<XXBean> getXXBeanList(List<String> list);
 
 foreach最后的效果是``select t.* from tableName where id in ('1','2','3')``
 
-# 五、多参数传递之注解方式
-
-List<XXBean> getXXBeanList(@Param("xxId")String xxId, @Param("xxCode")String xxCode);
-
-List<XXBean> getXXBeanList(String xxId, String xxCode);
-
-``<select id="getXXBeanList" resultType="XXBean的权限定类名" >``
-
-​	``select t.* from tableName t where t.id=#{xxId} and t.code=#{xxCode}``
-
-``</select>``
-
-# 六、select List()只能传递一个参数，但实际所需参数既要包含String类型，又要包含List类型
+### 6、select List()只能传递一个参数，但实际所需参数既要包含String类型，又要包含List类型
 
 参数既有String又有List
 
@@ -105,3 +95,106 @@ List<StudentEntity> getStudentListByMap(Map<String, Object> paramMap);
         ``</foreach>``
 ``</select>``
 
+# 二、新增
+
+* 插入单条数据
+
+  int save(StudentEntity entity);
+  <insert id="save" parameterType="com.yangyh.mybatis.learn.entity.StudentEntity">
+          insert into student (
+              id,
+              student_no,
+              name,
+              age,
+              major
+          )
+          values (
+              #{id},
+              #{studentNo},
+              #{name},
+              #{age},
+              #{major}
+          )
+  </insert>
+
+* 批量插入
+
+  int saveBatch(List<StudentEntity> list);
+  <insert id="saveBatch" parameterType="java.util.List">
+          insert into student (
+              id,
+              student_no,
+              name,
+              age,
+              major
+          ) values
+          <foreach collection="list" item="item" index="index" separator=",">
+              (
+              #{item.id},
+              #{item.studentNo},
+              #{item.name},
+              #{item.age},
+              #{item.major}
+              )
+          </foreach>
+      ``</insert>``
+
+# 三、更新
+
+int update(StudentEntity entity);
+<update id="update" parameterType="com.yangyh.mybatis.learn.entity.StudentEntity" flushCache="true">
+        update student
+        <set>
+            <if test="studentNo != null">
+                student_no = #{studentNo},
+            </if>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="major != null">
+                major = #{major}
+            </if>
+        </set>
+        where
+        1 = 1
+        and student_no = #{studentNo}
+</update>
+
+# 四、删除
+
+int delete(StudentEntity entity);
+
+```
+<sql id="Student_where">
+    <where>
+        <if test="id != null">
+            and id = #{id}
+        </if>
+        <if test="studentNo != null">
+            and student_no = #{studentNo}
+        </if>
+        <if test="name != null">
+            and name = #{name}
+        </if>
+        <if test="age != null">
+            and age = #{age}
+        </if>
+        <if test="major != null">
+            and major = #{major}
+        </if>
+    </where>
+</sql>
+```
+
+<delete id="delete" parameterType="com.yangyh.mybatis.learn.entity.StudentEntity">
+        delete from student
+        <include refid="Student_where"/>
+</delete>
+
+```
+
+
+```
